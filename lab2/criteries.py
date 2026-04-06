@@ -3,30 +3,34 @@ from scipy.stats import shapiro, wilcoxon, spearmanr, kendalltau
 
 ALPHA = 0.05
 
-file_path = "../data.xls"
+file_path = "data.xls"
 df = pd.read_excel(file_path, engine="xlrd")
 df = df[[
     "Country",
     "Meat production (2018)",
     "Meat production (2020)",
-    "Meat production (2022)"
+    "Meat production (2022)",
+    "Milk production (2022)"
 ]].copy()
 for col in [
     "Meat production (2018)",
     "Meat production (2020)",
-    "Meat production (2022)"
+    "Meat production (2022)",
+    "Milk production (2022)"
 ]:
     df[col] = pd.to_numeric(df[col], errors="coerce")
 df = df.dropna(subset=[
     "Country",
     "Meat production (2018)",
     "Meat production (2020)",
-    "Meat production (2022)"
+    "Meat production (2022)",
+    "Milk production (2022)"
 ])
 df = df.reset_index(drop=True)
 x2022 = df["Meat production (2022)"]
 x2020 = df["Meat production (2020)"]
 x2018 = df["Meat production (2018)"]
+m2022 = df["Milk production (2022)"]
 
 print("Количество стран в анализе:", len(df))
 print("\nФрагмент данных:")
@@ -93,7 +97,7 @@ print("КРИТЕРИЙ КЕНДАЛЛА")
 print("tau =", tau)
 print("p-value =", p_k)
 
-if p_k < 0.05:
+if p_k < ALPHA:
     print("нулевая гипотеза отвергается: существует статистически значимая связь.")
 else:
     print("нет оснований отвергать нулевую гипотезу.")
@@ -116,3 +120,24 @@ print("r =", s1, "p =", ps1)
 print("\n=== Спирмен 2020 vs 2022 ===")
 s2, ps2 = spearmanr(x2020, x2022)
 print("r =", s2, "p =", ps2)
+
+# анализ разных показателей
+print("\n")
+print("АНАЛИЗ РАЗНЫХ ПОКАЗАТЕЛЕЙ (МЯСО vs МОЛОКО)")
+
+milk = df["Milk production (2022)"]
+
+# Спирмен
+r_milk, p_milk = spearmanr(x2022, milk)
+print("\nСпирмен (meat vs milk):")
+print("r =", r_milk, "p =", p_milk)
+
+# Кендалл
+tau_milk, p_k_milk = kendalltau(x2022, milk)
+print("\nКендалл (meat vs milk):")
+print("tau =", tau_milk, "p =", p_k_milk)
+
+if p_milk < ALPHA:
+    print("Есть статистически значимая связь между производством мяса и молока.")
+else:
+    print("Статистически значимая связь не обнаружена.")
